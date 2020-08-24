@@ -28,6 +28,8 @@ class Handler:
     def enrToMultiAddress(_enr):
         knode = KNode.from_enr_repr(_enr)
         return {"enode": knode.uri(),
+                "enrdata": {"address":knode.address, "pubkey":knode.pubkey, "id":knode.id},
+                "enritems": ENR.from_repr(_enr).items(),
                 "multiaddr": Handler.enodeToMultiAddress(knode.uri())} 
 
     @staticmethod
@@ -36,7 +38,9 @@ class Handler:
         ret = {
             "enode":"",
             "enr":"",
-            "multiaddr":""
+            "multiaddr":"",
+            "enrdata":{},
+            "enritems":{}
         }
 
         if(_node.startswith("/")):
@@ -65,9 +69,12 @@ app.config.update(
 @app.route("/")
 def hello():
     inaddr = request.args.get('inaddr') 
-    if inaddr:
-        inaddr = urllib.parse.unquote(inaddr)
-        return render_template('index.html', data=Handler.render(inaddr))
+    try:
+        if inaddr:
+            inaddr = urllib.parse.unquote(inaddr)
+            return render_template('index.html', data=Handler.render(inaddr.strip()))
+    except Exception as e:
+        print(e)
     return render_template('index.html')
 
 
